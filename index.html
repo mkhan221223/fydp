@@ -397,7 +397,6 @@
                 modalLoading.classList.remove('hidden');
                 ptmModal.classList.remove('hidden');
                 setTimeout(() => {
-                    // Apply opacity to the modal itself, not a child element
                     ptmModal.classList.add('opacity-100');
                     ptmModal.querySelector('.modal-content').classList.add('scale-100');
                 }, 10);
@@ -415,17 +414,23 @@
                         body: JSON.stringify(payload)
                     });
                     const result = await response.json();
-                    if (result.candidates && result.candidates.length > 0 &&
-                        result.candidates[0].content && result.candidates[0].content.parts &&
-                        result.candidates[0].content.parts.length > 0) {
-                        const text = result.candidates[0].content.parts[0].text;
-                        modalContent.innerHTML = `<p class="text-slate-700">${text}</p>`;
+                    if (response.ok) { // Check if the HTTP response was successful (status 200-299)
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            const text = result.candidates[0].content.parts[0].text;
+                            modalContent.innerHTML = `<p class="text-slate-700">${text}</p>`;
+                        } else {
+                            console.error("Gemini API response structure unexpected:", result);
+                            modalContent.innerHTML = `<p class="text-red-500">Failed to get a valid explanation from the AI. (Unexpected response format)</p>`;
+                        }
                     } else {
-                        modalContent.innerHTML = `<p class="text-red-500">Failed to generate explanation. Please try again.</p>`;
+                        console.error("Gemini API HTTP error:", response.status, result);
+                        modalContent.innerHTML = `<p class="text-red-500">Failed to get a valid explanation from the AI. (HTTP Error: ${response.status})</p>`;
                     }
                 } catch (error) {
-                    console.error("Error calling Gemini API:", error);
-                    modalContent.innerHTML = `<p class="text-red-500">An error occurred: ${error.message}. Please try again.</p>`;
+                    console.error("Network or API call error:", error);
+                    modalContent.innerHTML = `<p class="text-red-500">An error occurred during the AI call: ${error.message}. Please check your network or try again.</p>`;
                 } finally {
                     modalLoading.classList.add('hidden');
                     modalContent.classList.remove('hidden');
@@ -457,7 +462,6 @@
             });
 
             closeModalButton.onclick = () => {
-                // Apply opacity removal to the modal itself
                 ptmModal.classList.remove('opacity-100');
                 ptmModal.querySelector('.modal-content').classList.remove('scale-100');
                 setTimeout(() => ptmModal.classList.add('hidden'), 300);
@@ -596,17 +600,23 @@
                         body: JSON.stringify(payload)
                     });
                     const result = await response.json();
-                    if (result.candidates && result.candidates.length > 0 &&
-                        result.candidates[0].content && result.candidates[0].content.parts &&
-                        result.candidates[0].content.parts.length > 0) {
-                        const text = result.candidates[0].content.parts[0].text;
-                        outputArea.innerHTML = `<p class="text-slate-700">${text}</p>`;
+                    if (response.ok) { // Check if the HTTP response was successful (status 200-299)
+                        if (result.candidates && result.candidates.length > 0 &&
+                            result.candidates[0].content && result.candidates[0].content.parts &&
+                            result.candidates[0].content.parts.length > 0) {
+                            const text = result.candidates[0].content.parts[0].text;
+                            outputArea.innerHTML = `<p class="text-slate-700">${text}</p>`;
+                        } else {
+                            console.error("Gemini API response structure unexpected for feature suggestions:", result);
+                            outputArea.innerHTML = `<p class="text-red-500">Failed to get valid feature suggestions from the AI. (Unexpected response format)</p>`;
+                        }
                     } else {
-                        outputArea.innerHTML = `<p class="text-red-500">Failed to generate suggestions. Please try again.</p>`;
+                        console.error("Gemini API HTTP error for feature suggestions:", response.status, result);
+                        outputArea.innerHTML = `<p class="text-red-500">Failed to get valid feature suggestions from the AI. (HTTP Error: ${response.status})</p>`;
                     }
                 } catch (error) {
-                    console.error("Error calling Gemini API for feature suggestions:", error);
-                    outputArea.innerHTML = `<p class="text-red-500">An error occurred: ${error.message}. Please try again.</p>`;
+                    console.error("Network or API call error for feature suggestions:", error);
+                    outputArea.innerHTML = `<p class="text-red-500">An error occurred during the AI call: ${error.message}. Please check your network or try again.</p>`;
                 } finally {
                     loadingArea.classList.add('hidden');
                 }
